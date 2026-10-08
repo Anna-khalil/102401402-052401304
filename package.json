@@ -1,0 +1,12 @@
+{
+  "name": "xunji-lostfound",
+  "version": "0.1.0",
+  "description": "寻迹 · 校园失物招领（2026秋软件工程第二次结对作业）",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

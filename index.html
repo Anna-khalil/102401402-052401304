@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻迹 · 校园失物招领</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶栏 -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <span class="logo">寻迹</span>
+        <span class="page-title" id="page-title">首页</span>
+      </div>
+    </header>
+
+    <main class="view-wrap">
+      <!-- ========== 视图一：首页 ========== -->
+      <section class="view" id="view-home">
+        <!-- 统计条 -->
+        <div class="stats-bar">
+          <div class="stat"><b id="stat-total">0</b><span>全部</span></div>
+          <div class="stat stat-active"><b id="stat-active">0</b><span>进行中</span></div>
+          <div class="stat stat-resolved"><b id="stat-resolved">0</b><span>已完成</span></div>
+          <div class="stat stat-rate"><b id="stat-rate">0%</b><span>解决率</span></div>
+        </div>
+
+        <!-- 搜索框 -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input id="search-input" type="text" placeholder="搜索物品名称 / 地点 / 描述…">
+          <button class="search-clear" id="search-clear" style="display:none">×</button>
+        </div>
+        <div class="search-tools" id="search-tools"></div>
+
+        <!-- 类型 Tab -->
+        <div class="tabs" id="type-tabs">
+          <button class="tab active" data-type="">全部</button>
+          <button class="tab" data-type="lost">寻物</button>
+          <button class="tab" data-type="found">招领</button>
+        </div>
+
+        <!-- 筛选区 -->
+        <div class="filter-panel">
+          <div class="chip-row">
+            <span class="chip-label">类别</span>
+            <span id="chips-category"></span>
+          </div>
+          <div class="chip-row">
+            <span class="chip-label">区域</span>
+            <span id="chips-area"></span>
+          </div>
+          <div class="chip-row">
+            <span class="chip-label">状态</span>
+            <span id="chips-status"></span>
+          </div>
+          <div class="filter-foot">
+            <span class="result-count" id="result-count"></span>
+            <button class="link-btn" id="reset-btn">重置筛选</button>
+          </div>
+        </div>
+
+        <!-- 卡片列表（由 JS 渲染） -->
+        <div class="card-list" id="card-list"></div>
+        <div class="empty" id="home-empty" style="display:none">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">还没有相关信息</div>
+          <button class="btn btn-primary" data-action="go-publish">去发布一条</button>
+        </div>
+      </section>
+
+      <!-- ========== 视图二：详情 ========== -->
+      <section class="view" id="view-detail">
+        <button class="btn-back" data-action="go-home">← 返回</button>
+        <div id="detail-body"></div>
+      </section>
+
+      <!-- ========== 视图三：发布 ========== -->
+      <section class="view" id="view-publish">
+        <div class="form-card">
+          <div class="type-switch">
+            <label class="type-option active" id="opt-lost">
+              <input type="radio" name="post-type" value="lost" checked>
+              <span>🔍 寻物</span>
+            </label>
+            <label class="type-option" id="opt-found">
+              <input type="radio" name="post-type" value="found">
+              <span>📦 招领</span>
+            </label>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">物品名称 <em>*</em></label>
+            <input class="form-input" id="f-title" maxlength="30" placeholder="如：黑色保温杯">
+            <div class="field-error" id="e-title"></div>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">物品类别 <em>*</em></label>
+            <select class="form-input" id="f-category">
+              <option value="">请选择类别</option>
+              <option>电子设备</option><option>证件卡片</option><option>钥匙</option>
+              <option>服饰箱包</option><option>书籍文具</option><option>其他</option>
+            </select>
+            <div class="field-error" id="e-category"></div>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">所在区域 <em>*</em></label>
+            <select class="form-input" id="f-area">
+              <option value="">请选择区域</option>
+              <option>教学区</option><option>图书馆</option><option>食堂</option>
+              <option>宿舍区</option><option>运动场</option><option>其他</option>
+            </select>
+            <div class="field-error" id="e-area"></div>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">具体地点 <em>*</em></label>
+            <input class="form-input" id="f-location" maxlength="50" placeholder="如：图书馆三楼靠窗座位">
+            <div class="field-error" id="e-location"></div>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">丢失 / 拾捡时间</label>
+            <input class="form-input" id="f-time" type="datetime-local">
+            <div class="field-error" id="e-time"></div>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">详细描述</label>
+            <textarea class="form-input" id="f-desc" maxlength="200" placeholder="颜色、特征、时间细节…"></textarea>
+            <div class="field-error" id="e-desc"></div>
+          </div>
+
+          <div class="form-item">
+            <label class="form-label">联系方式 <em>*</em></label>
+            <input class="form-input" id="f-contact" maxlength="60" placeholder="手机号 / 微信 / QQ，如 QQ：123456">
+            <div class="field-error" id="e-contact"></div>
+          </div>
+
+          <button class="btn btn-primary btn-block" id="publish-btn">发布信息</button>
+          <div class="form-tip">发布后可在「我的发布」中标记已找到 / 已归还</div>
+        </div>
+      </section>
+
+      <!-- ========== 视图四：我的发布 ========== -->
+      <section class="view" id="view-myposts">
+        <div class="card-list" id="mypost-list"></div>
+        <div class="empty" id="mypost-empty">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-text">你还没有发布过信息</div>
+          <button class="btn btn-primary" data-action="go-publish">去发布一条</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- 底部 Tab -->
+    <nav class="tabbar">
+      <button class="tabbar-item active" data-route="#/home">
+        <span class="tabbar-icon">🏠</span><span>首页</span>
+      </button>
+      <button class="tabbar-item" data-route="#/publish">
+        <span class="tabbar-icon">➕</span><span>发布</span>
+      </button>
+      <button class="tabbar-item" data-route="#/myposts">
+        <span class="tabbar-icon">👤</span><span>我的发布</span>
+      </button>
+    </nav>
+
+    <!-- 弹窗根节点 / Toast 根节点 -->
+    <div class="modal-root" id="modal-root"></div>
+    <div class="toast-root" id="toast-root"></div>
+  </div>
+
+  <!-- 经典 script 标签顺序加载（file:// 下 ES Module 会被 CORS 拦截） -->
+  <script src="js/core.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
