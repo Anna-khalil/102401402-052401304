@@ -35,7 +35,7 @@
   // 初始化：加载数据（阶段 A 只确保 store 能跑通，不渲染列表）
   document.addEventListener('DOMContentLoaded', function () {
     try {
-      Store.loadItems();
+      Store.load(SEED_DATA);
       Store.getOwnerId();
     } catch (e) {
       console.warn('store init failed:', e);
