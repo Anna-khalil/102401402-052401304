@@ -34,7 +34,7 @@
 │   ├── ui.js             # 渲染层（卡片/弹窗/Toast/一键复制/HTML 转义）
 │   └── app.js            # 应用入口（路由、事件绑定、状态管理、发布/搜索/状态闭环）
 ├── test/
-│   └── core.test.js      # 单元测试（node:test，55 个用例）
+│   └── core.test.js      # 单元测试（node:test，60 个用例）
 ├── docs/
 │   ├── PSP.md            # PSP 预估与实际记录
 │   └── 数据流图.md       # 数据流图与关键流程图（Mermaid）
@@ -78,7 +78,7 @@ node --test
 npm test
 ```
 
-- 当前 **55 个用例全部通过**，覆盖 `core.js`（校验/搜索/排序/状态机/权限/相似度/统计/转义）与 `store.js`（损坏 JSON、容量不足、历史去重、草稿）等；
+- 当前 **60 个用例全部通过**，覆盖 `core.js`（校验/搜索/排序/状态机/权限/相似度/统计/转义）与 `store.js`（损坏 JSON、容量不足、历史去重、草稿）等；
 - 覆盖率（业务与存储层）：`core.js` 行 97.6% / 分支 82.4%，`store.js` 行 93.3%；
 - CI：`.github/workflows/test.yml` 会在每次 push / PR 时自动运行全部测试。
 
