@@ -104,6 +104,14 @@ test('validatePost：时间格式错误（缺分钟）被拒绝', () => {
   assert.ok(r.errors.eventTime);
 });
 
+test('validLocalTime：闰年 2024-02-29 合法，非闰年 2026-02-29 非法', () => {
+  assert.strictEqual(Core.validLocalTime('2024-02-29 23:59'), true);
+  assert.strictEqual(Core.validLocalTime('2026-02-29 12:00'), false);
+  assert.strictEqual(Core.validLocalTime('2026-04-31 12:00'), false);
+  assert.strictEqual(Core.validLocalTime('2026-13-01 12:00'), false);
+  assert.strictEqual(Core.validLocalTime('2026-10-08 24:00'), false);
+});
+
 test('validatePost：合法输入通过且字段被 trim', () => {
   const r = Core.validatePost({
     type: 'lost', title: '  黑色保温杯  ', category: '其他', area: '图书馆',
@@ -156,6 +164,11 @@ test('searchItems：组合筛选（类型 + 类别 + 状态）', () => {
 
 test('searchItems：筛选无匹配返回空数组', () => {
   assert.deepEqual(Core.searchItems(fixture(), { category: '书籍文具' }), []);
+});
+
+test('searchItems：关键词无结果返回空数组（走查：搜索无结果）', () => {
+  assert.deepEqual(Core.searchItems(fixture(), { keyword: 'zzz不存在' }), []);
+  assert.deepEqual(Core.searchItems(fixture(), { keyword: '保温杯 教学区' }), []);
 });
 
 test('searchItems：非数组 / null 输入防御返回空数组', () => {
@@ -287,6 +300,19 @@ test('findSimilar：已完成信息不参与查重、类型不同不参与', () 
   assert.deepEqual(Core.findSimilar({ title: '校园卡', type: 'lost' }, list), []);
 });
 
+test('findSimilar：仅同类型互相查重（招领只与招领比较）', () => {
+  const list = [
+    item({ id: 'lost1', title: '蓝色雨伞', type: 'lost', status: 'active' }),
+    item({ id: 'found1', title: '蓝色雨伞', type: 'found', status: 'active' })
+  ];
+  const found = Core.findSimilar({ title: '蓝色雨伞', type: 'found' }, list);
+  assert.strictEqual(found.length, 1);
+  assert.strictEqual(found[0].id, 'found1');
+  const lost = Core.findSimilar({ title: '蓝色雨伞', type: 'lost' }, list);
+  assert.strictEqual(lost.length, 1);
+  assert.strictEqual(lost[0].id, 'lost1');
+});
+
 test('similarity：相同=1，互相包含=0.85，无关低分', () => {
   assert.strictEqual(Core.similarity('黑色雨伞', '黑色雨伞'), 1);
   assert.strictEqual(Core.similarity('黑色雨伞', '黑色雨伞（蓝色边）'), 0.85);
@@ -341,6 +367,15 @@ test('calcStats：总数 / 进行中 / 已完成 / 解决率', () => {
   assert.strictEqual(s.rate, 40);
   assert.strictEqual(Core.calcStats([]).rate, 0);
   assert.strictEqual(Core.calcStats(null).total, 0);
+});
+
+test('calcStats：解决率四舍五入，全部完成时为 100%', () => {
+  const one = [item({ id: 'a', status: 'resolved' }), item({ id: 'b', status: 'active' }), item({ id: 'c', status: 'active' })];
+  assert.strictEqual(Core.calcStats(one).rate, 33);
+  const two = [item({ id: 'a', status: 'resolved' }), item({ id: 'b', status: 'resolved' }), item({ id: 'c', status: 'active' })];
+  assert.strictEqual(Core.calcStats(two).rate, 67);
+  const all = [item({ id: 'a', status: 'resolved' })];
+  assert.strictEqual(Core.calcStats(all).rate, 100);
 });
 
 // ==================== escapeHtml / normalize / 文案 ====================
@@ -467,6 +502,16 @@ test('store 草稿：保存 / 读取 / 清除', () => {
   assert.deepEqual(Store.getDraft(m), { title: '草稿' });
   Store.clearDraft(m);
   assert.strictEqual(Store.getDraft(m), null);
+});
+
+test('store：历史 / 草稿数据损坏时安全降级（不抛异常）', () => {
+  const m = memory();
+  m.setItem(Store.HISTORY_KEY, '{bad json');
+  assert.deepEqual(Store.getHistory(m), []);
+  m.setItem(Store.DRAFT_KEY, '{bad json');
+  assert.strictEqual(Store.getDraft(m), null);
+  m.setItem(Store.HISTORY_KEY, JSON.stringify(['  ', '校园卡', 123]));
+  assert.deepEqual(Store.getHistory(m), ['校园卡']);
 });
 
 test('store.validItems：拒绝缺失关键字段的记录', () => {
